@@ -47,8 +47,8 @@ NEGATIVE_OWNERS = [
     'NEWS', '뉴스', '지식']
 
 
-def _query_youtube(query):
-    res = requests.get(SEARCH_ENDPOINT, {"search_query": query})
+def _query_youtube(query_string):
+    res = requests.get(SEARCH_ENDPOINT, {"search_query": query_string})
     if res.status_code != 200:
         return []
 
@@ -86,7 +86,7 @@ def _query_youtube(query):
         'url': PLAY_URL_FORMAT.format(c['videoId']),
         'thumbnail': c['thumbnail']['thumbnails'][0]['url'],
         'playtime': parse_playtime(c['lengthText']['simpleText']),
-        'view': int(re.sub('[^\d]', '', c['viewCountText']['simpleText'])),
+        'view': int(''.join(filter(str.isdigit, c['viewCountText']['simpleText']))),
         'owner': c['ownerText']['runs'][0]['text'],
         'penalty': idx
     } for idx, c in enumerate(contents)]
@@ -116,7 +116,7 @@ def _prioritize_links(links, positive_keywords):
 #  'title': 'Norazo - Mackerel, 노라조 - 고등어, Music Core 20090711',
 #  'id': 'SwFF_HSfmXE',
 #  'url': 'https://youtube.com/watch?v=SwFF_HSfmXE',
-#  'thumbnail': 'https://i.ytimg.com/vi/SwFF_HSfmXE/hq720.jpg?sqp=-oaymwEjCOgCEMoBSFryq4qpAxUIARUAAAAAGAElAADIQj0AgKJDeAE=&rs=AOn4CLCQObTxwzzlz5pJ_DqvOLQ5W2_ebA',
+#  'thumbnail': 'https://i.ytimg.com/vi/SwFF_HSfmXE/hq720.jpg?sqp=-oay ... Qj0AgKJDeAE=&rs=AOn4CLCQObT ... 5W2_ebA',
 #  'playtime': datetime.timedelta(seconds=196),
 #  'view': 124543,
 #  'owner': 'MBCkpop',

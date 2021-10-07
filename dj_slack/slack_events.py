@@ -10,3 +10,8 @@ def message_channels(event_data):
 @slack_commands.on("/dj.drop")
 def my_command(event_data):
     print(f"Command {event_data['command']} has received")
+
+
+@slack_commands.on("/dj.next")
+def my_command(event_data):
+    print(f"Command {event_data['command']} has received")

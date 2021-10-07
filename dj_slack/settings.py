@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 import os
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -125,11 +128,17 @@ SLACK_EVENT_URL = 'events'  # default
 SLACK_OAUTH_URL = 'oauth'  # default
 SLACK_COMMAND_URL = 'commands'  # default
 
-SLACK_EVENTS = "my_slack_app.slack_events"  # the module that you want to handle the event
+SLACK_EVENT_APP = "dj_slack.slack_events"  # the module that you want to handle the event
+SLACK_COMMAND_APP = "dj_slack.slack_events"  # the module that you want to handle the event
 SLACK_SIGNING_SECRET = "SOMENICESECRETCODE"  # your slack-app's secret
+
+SLACK_APP_TOKEN = ''
+SLACK_CLIENT_ID = ''
+SLACK_CLIENT_SECRET = ''
 
 # DJ
 PLAYER_BIN = '/usr/bin/cvlc'
+DOWNLOADS_PATH = 'downloads'
 
 LOUNGE_MUSICS = [
     "https://www.youtube.com/watch?v=Dx5qFachd3A",
