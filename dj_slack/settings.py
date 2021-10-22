@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'django_simple_slack_app',
+
+    'stage'
 ]
 
 MIDDLEWARE = [
@@ -128,8 +130,8 @@ SLACK_EVENT_URL = 'events'  # default
 SLACK_OAUTH_URL = 'oauth'  # default
 SLACK_COMMAND_URL = 'commands'  # default
 
-SLACK_EVENT_APP = "dj_slack.slack_events"  # the module that you want to handle the event
-SLACK_COMMAND_APP = "dj_slack.slack_events"  # the module that you want to handle the event
+SLACK_EVENT_APP = "stage.slack_events"  # the module that you want to handle the event
+SLACK_COMMAND_APP = "stage.slack_events"  # the module that you want to handle the event
 SLACK_SIGNING_SECRET = "SOMENICESECRETCODE"  # your slack-app's secret
 
 SLACK_APP_TOKEN = ''
