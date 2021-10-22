@@ -16,11 +16,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 
-import daemon
-
-dj = daemon.DJ()
-dj.start()
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('slack/', include("django_simple_slack_app.urls")),

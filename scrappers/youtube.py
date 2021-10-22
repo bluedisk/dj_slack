@@ -1,8 +1,8 @@
 import json
 import os.path
-import re
 from collections import Counter
 from datetime import timedelta
+from typing import TypedDict
 
 import requests
 # Scrapper
@@ -46,8 +46,20 @@ NEGATIVE_OWNERS = [
     # Negative keywords
     'NEWS', '뉴스', '지식']
 
+SongInfo = TypedDict('SongInfo', {
+    'title': str,
+    'id': int,
+    'url': str,
+    'thumbnail': str,
+    'playtime': timedelta,
+    'view': int,
+    'owner': str,
+    'owner_badge': list[str],
+    'penalty': int
+})
 
-def _query_youtube(query_string):
+
+def _query_youtube(query_string: str) -> list[SongInfo]:
     res = requests.get(SEARCH_ENDPOINT, {"search_query": query_string})
     if res.status_code != 200:
         return []
@@ -80,42 +92,42 @@ def _query_youtube(query_string):
         else:
             raise Exception(playtime)
 
-    return [{
-        'title': c['title']['runs'][0]['text'],
-        'id': c['videoId'],
-        'url': PLAY_URL_FORMAT.format(c['videoId']),
-        'thumbnail': c['thumbnail']['thumbnails'][0]['url'],
-        'playtime': parse_playtime(c['lengthText']['simpleText']),
-        'view': int(''.join(filter(str.isdigit, c['viewCountText']['simpleText']))),
-        'owner': c['ownerText']['runs'][0]['text'],
-        'owner_badge': [b['metadataBadgeRenderer']['style'] for b in c.get('ownerBadges', [])],
-        'penalty': idx
-    } for idx, c in enumerate(contents)]
+    return [SongInfo(
+        title=c['title']['runs'][0]['text'],
+        id=c['videoId'],
+        url=PLAY_URL_FORMAT.format(c['videoId']),
+        thumbnail=c['thumbnail']['thumbnails'][0]['url'],
+        playtime=parse_playtime(c['lengthText']['simpleText']),
+        view=int(''.join(filter(str.isdigit, c['viewCountText']['simpleText']))),
+        owner=c['ownerText']['runs'][0]['text'],
+        owner_badge=[b['metadataBadgeRenderer']['style'] for b in c.get('ownerBadges', [])],
+        penalty=idx
+    ) for idx, c in enumerate(contents)]
 
 
-def _prioritize_links(links, positive_keywords):
+def _prioritize_links(songs: list[SongInfo], positive_keywords) -> list[SongInfo]:
     def keyword_count(title, keywords):
         checking = [title.lower().find(keyword.lower()) != -1 for keyword in keywords]
         return Counter(checking).get(True, 0)
 
-    for link in links:
+    for song in songs:
         # title penalty
-        link['penalty'] -= keyword_count(link['title'], POSITIVE_KEYWORDS + positive_keywords)
-        link['penalty'] += keyword_count(link['title'], NEGATIVE_KEYWORDS)
+        song['penalty'] -= keyword_count(song['title'], POSITIVE_KEYWORDS + positive_keywords)
+        song['penalty'] += keyword_count(song['title'], NEGATIVE_KEYWORDS)
 
         # owner penalty
-        link['penalty'] -= keyword_count(link['owner'], POSITIVE_OWNERS + positive_keywords) * OWNER_WEIGHT
-        link['penalty'] += keyword_count(link['owner'], NEGATIVE_OWNERS) * OWNER_WEIGHT
+        song['penalty'] -= keyword_count(song['owner'], POSITIVE_OWNERS + positive_keywords) * OWNER_WEIGHT
+        song['penalty'] += keyword_count(song['owner'], NEGATIVE_OWNERS) * OWNER_WEIGHT
 
         # owner badge penalty
-        if 'BADGE_STYLE_TYPE_VERIFIED' in link['owner_badge']:
-            link['penalty'] -= 10
+        if 'BADGE_STYLE_TYPE_VERIFIED' in song['owner_badge']:
+            song['penalty'] -= 10
 
         # playtime penalty
-        if not timedelta(seconds=15) < link['playtime'] < timedelta(minutes=15):
-            link['penalty'] += 10
+        if not timedelta(seconds=15) < song['playtime'] < timedelta(minutes=15):
+            song['penalty'] += 10
 
-    return sorted(links, key=lambda x: x['penalty'])
+    return sorted(songs, key=lambda x: x['penalty'])
 
 
 # response format:
@@ -131,7 +143,7 @@ def _prioritize_links(links, positive_keywords):
 #  'penalty': -5
 #  }, ...]
 
-def query(query_string):
+def query(query_string: str) -> list[SongInfo]:
     links = _query_youtube(query_string)
     return _prioritize_links(links, [k.strip() for k in query_string.split('-')])
 
